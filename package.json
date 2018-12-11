@@ -1,0 +1,24 @@
+{
+  "name": "react_survey",
+  "version": "1.0.0",
+  "description": "using Stripe.js and passport.js",
+  "main": "index.js",
+  "engines": {
+    "node": "v10.12.0",
+    "npm": "6.4.1"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "author": "Elwin",
+  "license": "ISC",
+  "dependencies": {
+    "cookie-session": "^2.0.0-beta.3",
+    "express": "^4.16.4",
+    "mongoose": "^5.3.14",
+    "nodemon": "^1.18.7",
+    "passport": "^0.4.0",
+    "passport-google-oauth20": "^1.0.0"
+  }
+}
