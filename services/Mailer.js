@@ -13,6 +13,7 @@ class Mailer extends helper.Mail {
 
     this.addContent(this.body) // came from built in function in helper.Mail
     this.addClickTracking()
+    this.addRecipients()
   }
 
   formatAddresses(recipients) {
@@ -23,6 +24,9 @@ class Mailer extends helper.Mail {
   addClickTracking() {
     const trackingSettings = new helper.TrackingSettings()
     const clickTracking = new helper.ClickTracking(true, true)
+
+    trackingSettings.setClickTracking(clickTracking)
+    this.addTrackingSettings(trackingSettings)
   }
 }
 
