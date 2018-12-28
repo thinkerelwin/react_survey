@@ -10,27 +10,46 @@ const surveyTemplate = require('../services/emailTEmplates/surveyTemplate')
 const Survey = mongoose.model('surveys')
 
 module.exports = app => {
-  app.get('/api/surveys/thanks', (req, res) => {
+  app.get('/api/surveys', requireLogin, async (req, res) => {
+    const surveys = await Survey
+      .find({ _user: req.user.id })
+      .select({ recipients: false })
+
+    res.send(surveys)
+  })
+
+  app.get('/api/surveys/:surveyId/:choice', (req, res) => {
     res.send('Thanks for voting!')
   })
 
   app.post('/api/surveys/webhooks', (req, res) => {
-    // console.log(req.body)
-    const events = _.map(req.body, ({ url, email }) => {
-      const pathname = new URL(url).pathname
-      const extractedParams = new Path('/api/surveys/:surveyId/:choice')
-      const match = extractedParams.test(pathname)
+    const extractedParams = new Path('/api/surveys/:surveyId/:choice')
 
-      if (match) {
-        return { email, surveyId: match.surveyId, choice: match.choice }
-      }
+    _.chain(req.body)
+      .map(({ url, email }) => {      
+        const match = extractedParams.test(new URL(url).pathname)
+        if (match) {
+          return { email, surveyId: match.surveyId, choice: match.choice }
+        }
+      })
+      .compact()
+      .uniqBy('email', 'surveyId')
+      .each(({ surveyId, email, choice }) => {
+        Survey.updateOne({
+          _id: surveyId,
+          recipients: {
+            $elemMatch: { email: email, responded: false }
+          }
+        }, {
+          $inc: { [choice]: 1 },
+          $set: { 'recipients.$.responded': true },
+          lastResponded: new Date()
+        }).exec()
+      })
+      .value()
 
-    })
-    console.log(events)
-    const compactEvents = _.compact(events)
-    const uniqueEvents = _.uniqBy(compactEvents, 'email', 'surveyId')
-    console.log(uniqueEvents)
-
+    // sendGrid don't need reply, add a empty one just to prevent error on node
+    res.send({})
   })
   
   app.post('/api/surveys', requireLogin, requireCredits, async (req, res) => {
